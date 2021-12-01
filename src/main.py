@@ -7,31 +7,42 @@ CLI_CMDS: list[str] = ["lib", "pro"]
 def prompt() -> int:
     pass
 
-def build_path() -> list[str]:
-    pass
+def str2path(name: str, *args: str) -> list[str]:
+    full_path: list[str] = f"{os.getcwd()}/{name}"
 
-def parse_cli() -> tuple[str, str, list[str]]:
-    index: int = 1
+    if not os.access(full_path, os.F_OK):
+        return list(map(lambda x: full_path, args))
+    else:
+        print(f"error! directory/file {name} already exists", file=sys.stderr)
+        exit(1)
+
+def parse_cli() -> tuple[str, list[str]]:
+    index: int = 0
     name: str = ""
     temp_file: str = ""
     paths: list[str] = ["src/", "test/", "doc/"]
 
-    # parse mkpro flags
-    try:
-        while(sys.argv[index + 1] not in CLI_CMDS):
-            if sys.argv[index] == "-t":
-                index += 1
-                temp_file = sys.argv[index]
-                continue
-            else:
-                print(f"error! unknown flag '{sys.argv[index]}' for mkpro", file=sys.stderr)
-                exit(1)
-            index += 1
-        index += 1
-    except IndexError:
-        print("error! command not given", file=sys.stderr)
-        exit(1)
+    # check if mkpro has flags
+    if sys.argv[index + 1] not in CLI_CMDS:
 
+        # parse mkpro flags
+        try:
+            while((sys.argv[index + 1] not in CLI_CMDS) or \
+                  (sys.argv[index] not in CLI_CMDS)):
+                if sys.argv[index] == "-t":
+                    index += 1
+                    temp_file = sys.argv[index]
+                    continue
+                else:
+                    print(f"error! unknown flag '{sys.argv[index]}' for mkpro", file=sys.stderr)
+                    exit(1)
+                index += 1
+            index += 1
+        except IndexError:
+            print("error! command not given", file=sys.stderr)
+            exit(1)
+    else:
+        index += 1
 
     # parse cmd & its flags
     assert len(CLI_CMDS) == 2, "error! possible unhandled command (dev)"
@@ -81,9 +92,11 @@ def parse_cli() -> tuple[str, str, list[str]]:
                 exit(1)
 
             index += 1
-                    
+
+    # pathefy list
+    paths = str2path(name, *paths)
     
-    return name, temp_file, paths
+    return temp_file, paths
                         
 
 def build_path(path: str) -> int:
