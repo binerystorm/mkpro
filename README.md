@@ -8,6 +8,7 @@ It will also incude a template system so your files will have templated code in 
 To initialize program type `mkpro`, this will not work on its own it requires at least a {command} and a {name}. The {command} being what type of directory structure you want and the {name} being the name of the base diretory of the structure (name must not and cannot be a full path), this directory will be created in your current working directory. both `mkpro` and the `command` have multible flags, veiw Commands & Flags section of this document (there you will also get a list of the the commands you can use.)
 
 visual command layout:
+
 mkpro [-flags] [lib|pro] {name} [-lib&proflags]
 
 
@@ -36,21 +37,25 @@ mkpro  pro {name} [-b|-r|-R |-n {na{name}me}]
      creates project directory structure
      [flags]
      * -b
-       supresses creation of bin directory
-     * -r
-       supresses creation of readme file
+       creation of bin directory
+     * -d
+       creation of readme file
+     * -r {name}
+       supresses creation of default directory {name}. <br>
      * -R {name}
-       supresses creation of default file/diretory {name}. <br>
-       Keep in mind if you want to remove a file/directory the name must be postpended with a backslash '/' e.g `-R src/`. For files just the name and extention are required e.g `-R README.md`.
+       supresses creation of default file {name}. <br>
        
      - -n {name}
-       creates custom file/directory {name}. <br>
-       Keep in mind if you want to create a file/directory the name must be postpended with a backslash '/' e.g `-n src/`. For files just the name and extention are required e.g `-n README.md`.
+       creates custom directory {name}. <br>
+     - -N {name}
+       creates custom file {name}. <br>
 
    [flags]
    - -t {templatefile}
      using {templatefile} for extraction of templates.
      Keep in mind requires full path to the template file e.g `/home/[user]/templates/tempfile`.
+   - -e {.extention}
+   using {.extention} for the file put inside of source directory
 
 ## CLI Prompts
    * (create file)> {name} [-t {templatename}]+

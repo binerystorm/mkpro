@@ -5,6 +5,7 @@ from typing import Final
 # Global vars
 CLI_CMDS: list[str] = ["lib", "pro"]
 TEMP_FILE: str = ""
+EXT: str = ".py"
 
 def prompt() -> int:
     pass
@@ -22,7 +23,7 @@ def parse_cli() -> tuple[list[str], list[str]]:
     index: int = 0
     name: str = ""
     dirs: list[str] = ["src/", "test/", "doc/"]
-    files: list[str] = []
+    files: list[str] = ["src/main."]
 
     # check if mkpro has flags
     try:
@@ -35,6 +36,10 @@ def parse_cli() -> tuple[list[str], list[str]]:
                         index += 1
                         TEMP_FILE = sys.argv[index]
                         continue
+                    elif sys.argv[index] == "-e":
+                        index += 1
+                        EXT = sys.argv[index]
+                        continue
                     else:
                         print(f"error! unknown flag '{sys.argv[index]}' for mkpro", file=sys.stderr)
                         exit(1)
@@ -43,7 +48,7 @@ def parse_cli() -> tuple[list[str], list[str]]:
         else:
             index += 1
     except IndexError:
-        print("error! command not given", file=sys.stderr)
+        print(f"error! command not given or argument for flag {sys.argv[-1]} was not given", file=sys.stderr)
         exit(1)
 
     # parse cmd & its flags
