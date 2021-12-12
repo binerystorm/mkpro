@@ -55,7 +55,9 @@ mkpro  pro {name} [-b|-r|-R |-n {na{name}me}]
      using {templatefile} for extraction of templates.
      Keep in mind requires full path to the template file e.g `/home/[user]/templates/tempfile`.
    - -e {.extention}
-   using {.extention} for the file put inside of source directory
+     using {.extention} for the file put inside of source directory `src/` this only applys to the
+     src/ directory and you can not have multiple extentions, if you want a .c and a .h file you will
+     have to do it manually
 
 ## CLI Prompts
    * (create file)> {name} [-t {templatename}]+

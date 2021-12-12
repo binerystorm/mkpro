@@ -3,7 +3,6 @@ import os
 from typing import Final
 
 # Global vars
-CLI_CMDS: list[str] = ["lib", "pro"]
 # TODO: put proper default value in TEMP_FILE
 TEMP_FILE: str = "default_val"
 EXT: str = ".py"
@@ -16,25 +15,45 @@ def handle_err(msg: str, code: int = 1):
     print(msg, file=sys.stderr)
     exit(code)
 
-def str2path(name: str, *args: str) -> list[str]:
-    full_path: str = f"{os.getcwd()}/{name}"
+def str2dirs(*args: str) -> list[str]:
+    global NAME
+    full_path: str = f"{os.getcwd()}/{NAME}/"
 
     if not os.access(full_path, os.F_OK):
-        return list(map(lambda x: full_path, args))
+        return list(map(lambda x: full_path + x, args))
     else:
-        print(f"error! directory/file {name} already exists", file=sys.stderr)
+        print(f"error! directory/file {NAME} already exists", file=sys.stderr)
         exit(1)
 
-def parse_cli2() -> tuple[list[str], list[str]]:
+def str2files(*args: str) -> list[str]:
+    global NAME
+    full_path: str = f"{os.getcwd()}/{NAME}/"
+
+    if not os.access(full_path, os.F_OK):
+        return \
+            list(
+              map(
+                lambda x: full_path + x + EXT if x.split('/')[0] == "src" else full_path + x,
+                args
+              )
+            )
+    else:
+        print(f"error! file {NAME} already exists", file=sys.stderr)
+        exit(1)
+
+def parse_temp_file():
+    pass
+
+def parse_cli() -> tuple[list[str], list[str]]:
     index: int = 0
     dirs: list[str] = ["src/", "test/", "doc/"]
     files: list[str] = ["src/main"]
     global NAME
     global EXT
     global TEMP_FILE
+    cli_cmds: list[str] = ["lib", "pro"]
     flags: dict[str, list[str]] = {
-        # TODO: "main.py" must be "mkpro"
-        "main.py": [
+        sys.argv[0]: [
             "-t",
             "-e",
         ],
@@ -51,12 +70,12 @@ def parse_cli2() -> tuple[list[str], list[str]]:
     cmd: str
     flag: str
     # lacal funcs
-    iscmd = lambda x: sys.argv[x] not in CLI_CMDS
+    iscmd = lambda x: sys.argv[x] not in cli_cmds
     check = lambda x: x+1 < len(sys.argv)
-    inc = lambda x: x+1
     dirify = lambda x: f"{x}/"
 
     cmd = sys.argv[index]
+    assert len(flags[cmd]) == 2,  "exhaustive handling of mkpro cmds"
     while(check(index) and iscmd(index+1)):
         index += 1
         flag = sys.argv[index]
@@ -80,11 +99,14 @@ def parse_cli2() -> tuple[list[str], list[str]]:
 
     if not check(index): handle_err("error! no command given")
 
+    assert len(cli_cmds) == 2
     index += 1
     cmd = sys.argv[index]
     if cmd == "lib":
+        assert len(flags[cmd]) == 0, "exhaustive handling of lib flags"
         handle_err("error! lib command not implemented")
     elif cmd == "pro":
+        assert len(flags[cmd]) == 6, "exhaustive handling of pro flags"
         if check(index):
             index += 1
             NAME = sys.argv[index]
@@ -129,108 +151,9 @@ def parse_cli2() -> tuple[list[str], list[str]]:
                 else:
                     handle_err(f"error! argument was not given for flag `{flag}`")
 
-    return dirs, files
+    return str2dirs(*dirs), str2files(*files)
 
                     
-# def parse_cli() -> tuple[list[str], list[str]]:
-#     index: int = 0
-#     name: str = ""
-#     dirs: list[str] = ["src/", "test/", "doc/"]
-#     files: list[str] = ["src/main."]
-# 
-#     # check if mkpro has flags
-#     try:
-#         if sys.argv[index + 1] not in CLI_CMDS:
-# 
-#             # parse mkpro flags
-#                 while((sys.argv[index + 1] not in CLI_CMDS) or \
-#                       (sys.argv[index] not in CLI_CMDS)):
-#                     if sys.argv[index] == "-t":
-#                         index += 1
-#                         TEMP_FILE = sys.argv[index]
-#                         continue
-#                     elif sys.argv[index] == "-e":
-#                         index += 1
-#                         EXT = sys.argv[index]
-#                         continue
-#                     else:
-#                         print(f"error! unknown flag '{sys.argv[index]}' for mkpro", file=sys.stderr)
-#                         exit(1)
-#                     index += 1
-#                 index += 1
-#         else:
-#             index += 1
-#     except IndexError:
-#         print(f"error! command not given or argument for flag {sys.argv[-1]} was not given", file=sys.stderr)
-#         exit(1)
-# 
-#     # parse cmd & its flags
-#     assert len(CLI_CMDS) == 2, "error! possible unhandled command (dev)"
-#     if sys.argv[index] == "lib":
-#         print("error! not implemented", file=sys.stderr)
-#         exit(1)
-#     elif sys.argv[index] == "pro":
-#         index += 1
-#         try:
-#             name = sys.argv[index]
-#         except IndexError:
-#             print("error! command incomplete, project name was not given")
-#             exit(1)
-# 
-#         while (index := index + 1) < len(sys.argv):
-#             if sys.argv[index] == "-b":
-#                 dirs.append("bin/")
-#                 continue
-#             elif sys.argv[index] == "-d":
-#                 files.append("README.md")
-#                 continue
-#             elif sys.argv[index] in ("-r", "-R"):
-#                 try:
-#                     index += 1
-#                     if (f"{sys.argv[index]}/" in dirs) or \
-#                        (sys.argv[index] in files):
-#                         if sys.argv[index - 1] == "-r":
-#                             print(f"{sys.argv[index]}/")
-#                             dirs.remove(f"{sys.argv[index]}/")
-#                             continue
-#                         else:
-#                             files.remove(f"{sys.argv[index]}")
-#                             continue
-#                             
-#                     else:
-#                         # NOTE: might want to continue program even if file doesn't exist
-#                         print(f"error! default directory/file {sys.argv[index]} to remove does not exist", file=sys.stderr)
-#                         exit(1)
-#                 except IndexError:
-#                     print("error! directory/file to be removed was not given", file=sys.stderr)
-#                     exit(1)
-#             elif sys.argv[index] in ("-n", "-N"):
-#                 try:
-#                     index += 1
-#                     if (f"{sys.argv[index]}" not in dirs) or \
-#                        (sys.argv[index] not in files):
-#                         if sys.argv[index - 1] == "-n":
-#                             dirs.append(f"{sys.argv[index]}/")
-#                             continue
-#                         else:
-#                             files.append(f"{sys.argv[index]}")
-#                             continue
-#                     else:
-#                         # NOTE: might want to continue program even if file already exists
-#                         print("error! directory to be added already exists", file=sys.stderr)
-#                         exit(1)
-#                 except IndexError:
-#                     print("error! file to be added was not given", file=sys.stderr)
-#                     exit(1)
-#             else:
-#                 print(f"error! unknown flag '{sys.argv[index]}' for command 'pro'", file=sys.stderr)
-#                 exit(1)
-# 
-#             index += 1
-# 
-#     # pathefy list
-#     
-#     return dirs, files
 
 # def build_path(path: str) -> int:
 #     if path[-1] != '/':
@@ -240,7 +163,7 @@ def parse_cli2() -> tuple[list[str], list[str]]:
 #     return 1
 
 def main() -> None:
-    f, d = parse_cli2()
+    f, d = parse_cli()
     print(f)
     print(d)
     print(NAME)
