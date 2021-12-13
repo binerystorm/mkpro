@@ -7,6 +7,7 @@ from typing import Final
 TEMP_FILE: str = "default_val"
 EXT: str = ".py"
 NAME: str = ""
+DEBUG: bool = False
 
 def prompt() -> int:
     pass
@@ -22,7 +23,7 @@ def str2dirs(*args: str) -> list[str]:
     if not os.access(full_path, os.F_OK):
         return list(map(lambda x: full_path + x, args))
     else:
-        handle_err(f"error! directory/file {NAME} already exists")
+        handle_err(f"error! directory/file `{NAME}` already exists")
 
 def str2files(*args: str) -> list[str]:
     global NAME
@@ -41,10 +42,14 @@ def str2files(*args: str) -> list[str]:
 
 
 def build_dir_struct(dir_structure: list[str]) -> int:
+    global DEGUG
+
     try:
         for dir_ in dir_structure:
+            if DEBUG:
+                print(f"[debug] mkdir {dir_}")
             glob_dir: str = dir_
-            makedirs(dir_)
+            os.makedirs(dir_)
     except FileExistsError:
         handle_err(f"error! directory `{glob_dir}` already exists")
 
@@ -58,11 +63,13 @@ def parse_cli() -> tuple[list[str], list[str]]:
     global NAME
     global EXT
     global TEMP_FILE
+    global DEBUG
     cli_cmds: list[str] = ["lib", "pro"]
     flags: dict[str, list[str]] = {
         sys.argv[0]: [
             "-t",
             "-e",
+            "--debug"
         ],
         "pro": [
             "-b",
@@ -82,7 +89,7 @@ def parse_cli() -> tuple[list[str], list[str]]:
     dirify = lambda x: f"{x}/"
 
     cmd = sys.argv[index]
-    assert len(flags[cmd]) == 2,  "exhaustive handling of mkpro cmds"
+    assert len(flags[cmd]) == 3,  "exhaustive handling of mkpro cmds"
     while(check(index) and iscmd(index+1)):
         index += 1
         flag = sys.argv[index]
@@ -97,6 +104,11 @@ def parse_cli() -> tuple[list[str], list[str]]:
             EXT = sys.argv[index]
             # NOTE: not a fan of this solution
             if EXT[0] != '.': handle_err("error! file extentions require a `.` at the beggining")
+            continue
+
+        elif flag == "--debug":
+            DEBUG = True
+            continue
 
         else:
             if flag not in flags[cmd]:
@@ -163,9 +175,9 @@ def parse_cli() -> tuple[list[str], list[str]]:
 
 
 def main() -> None:
-    f, d = parse_cli()
-    print(f)
-    print(d)
+    dirs, files = parse_cli()
+    build_dir_struct(dirs)
+    print(files)
     print(NAME)
     print(EXT)
     print(TEMP_FILE)

@@ -58,6 +58,9 @@ mkpro  pro {name} [-b|-r|-R |-n {na{name}me}]
      using {.extention} for the file put inside of source directory `src/` this only applys to the
      src/ directory and you can not have multiple extentions, if you want a .c and a .h file you will
      have to do it manually
+   - --debug
+     During certian long and complex processes this flag will print debug data so you (I) know where it
+     went wrong
 
 ## CLI Prompts
    * (create file)> {name} [-t {templatename}]+
