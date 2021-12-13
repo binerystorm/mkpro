@@ -22,8 +22,7 @@ def str2dirs(*args: str) -> list[str]:
     if not os.access(full_path, os.F_OK):
         return list(map(lambda x: full_path + x, args))
     else:
-        print(f"error! directory/file {NAME} already exists", file=sys.stderr)
-        exit(1)
+        handle_err(f"error! directory/file {NAME} already exists")
 
 def str2files(*args: str) -> list[str]:
     global NAME
@@ -38,8 +37,16 @@ def str2files(*args: str) -> list[str]:
               )
             )
     else:
-        print(f"error! file {NAME} already exists", file=sys.stderr)
-        exit(1)
+        handle_err(f"error! file {NAME} already exists")
+
+
+def build_dir_struct(dir_structure: list[str]) -> int:
+    try:
+        for dir_ in dir_structure:
+            glob_dir: str = dir_
+            makedirs(dir_)
+    except FileExistsError:
+        handle_err(f"error! directory `{glob_dir}` already exists")
 
 def parse_temp_file():
     pass
@@ -153,14 +160,7 @@ def parse_cli() -> tuple[list[str], list[str]]:
 
     return str2dirs(*dirs), str2files(*files)
 
-                    
 
-# def build_path(path: str) -> int:
-#     if path[-1] != '/':
-#         os.makedirs(path)
-#     else:
-#         pass
-#     return 1
 
 def main() -> None:
     f, d = parse_cli()
