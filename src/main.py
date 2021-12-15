@@ -16,42 +16,49 @@ def handle_err(msg: str, code: int = 1):
     print(msg, file=sys.stderr)
     exit(code)
 
-def str2dirs(*args: str) -> list[str]:
+def str2dirs(args: str) -> list[str]:
     global NAME
-    full_path: str = f"{os.getcwd()}/{NAME}/"
+    full_path: str = f"{os.getcwd()}/{NAME}"
+    # local funcs
+    cat_path = lambda x: f"{full_path}/{x}"
 
-    if not os.access(full_path, os.F_OK):
-        return list(map(lambda x: full_path + x, args))
+    if os.path.exists(full_path):
+        handle_err(f"error! directory `{NAME}` already exists")
     else:
-        handle_err(f"error! directory/file `{NAME}` already exists")
+        # the casting of `set` is for the removal of duplicate paths
+        # return list(set(map(cat_path, args)))
+        return list({cat_path(x) for x in args})
 
-def str2files(*args: str) -> list[str]:
+def str2files(args: list[str]) -> list[str]:
     global NAME
-    full_path: str = f"{os.getcwd()}/{NAME}/"
+    full_path: str = f"{os.getcwd()}/{NAME}"
+    cat_path = lambda x: f"{full_path}/{x}{EXT}" if \
+        x.split('/')[0] == "src" \
+        else f"{full_path}/{x}"
 
-    if not os.access(full_path, os.F_OK):
-        return \
-            list(
-              map(
-                lambda x: full_path + x + EXT if x.split('/')[0] == "src" else full_path + x,
-                args
-              )
-            )
-    else:
+    if os.path.exists(full_path):
         handle_err(f"error! file {NAME} already exists")
+    else:
+        # the casting of `set` is for the removal of duplicate paths
+        # return list(set(map(cat_path, args)))
+        return list({cat_path(x) for x in args})
 
 
 def build_dir_struct(dir_structure: list[str]) -> int:
     global DEGUG
 
-    try:
-        for dir_ in dir_structure:
-            if DEBUG:
-                print(f"[debug] mkdir {dir_}")
-            glob_dir: str = dir_
+    for dir_ in dir_structure:
+        if DEBUG:
+            print(f"[debug] mkdir {dir_}")
+        
+        try:
             os.makedirs(dir_)
-    except FileExistsError:
-        handle_err(f"error! directory `{glob_dir}` already exists")
+        except FileExistsError:
+            # the only way a directory can exist is if it was created already during the
+            # recursive directory genoration of makedirs therefor this error can be ignored
+            pass
+        except:
+            handle_err(f"error! unknown issue occured during creation of `{dir_}` directory", 2)
 
 def parse_temp_file():
     pass
@@ -170,7 +177,7 @@ def parse_cli() -> tuple[list[str], list[str]]:
                 else:
                     handle_err(f"error! argument was not given for flag `{flag}`")
 
-    return str2dirs(*dirs), str2files(*files)
+    return str2dirs(dirs), str2files(files)
 
 
 
