@@ -16,18 +16,16 @@ def handle_err(msg: str, code: int = 1):
     print(msg, file=sys.stderr)
     exit(code)
 
-def str2dirs(args: str) -> list[str]:
+def str2dirs(args: list[str]) -> list[str]:
     global NAME
     full_path: str = f"{os.getcwd()}/{NAME}"
-    # local funcs
     cat_path = lambda x: f"{full_path}/{x}"
 
     if os.path.exists(full_path):
         handle_err(f"error! directory `{NAME}` already exists")
-    else:
-        # the casting of `set` is for the removal of duplicate paths
-        # return list(set(map(cat_path, args)))
-        return list({cat_path(x) for x in args})
+    # the casting of `set` is for the removal of duplicate paths
+    # return list(set(map(cat_path, args)))
+    return list({os.path.normpath(cat_path(x)) for x in args})
 
 def str2files(args: list[str]) -> list[str]:
     global NAME
@@ -38,13 +36,12 @@ def str2files(args: list[str]) -> list[str]:
 
     if os.path.exists(full_path):
         handle_err(f"error! file {NAME} already exists")
-    else:
-        # the casting of `set` is for the removal of duplicate paths
-        # return list(set(map(cat_path, args)))
-        return list({cat_path(x) for x in args})
+    # the casting of `set` is for the removal of duplicate paths
+    # return list(set(map(cat_path, args)))
+    return list({os.path.normpath(cat_path(x)) for x in args})
 
 
-def build_dir_struct(dir_structure: list[str]) -> int:
+def build_dir_struct(dir_structure: list[str]) -> None:
     global DEGUG
 
     for dir_ in dir_structure:
