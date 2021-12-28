@@ -1,13 +1,14 @@
 import sys
 import os
-from typing import Final
+from typing import Union
 
 # Global vars
 # TODO: put proper default value in TEMP_FILE
-TEMP_FILE: str = "default_val"
-EXT: str = ".py"
-NAME: str = ""
-DEBUG: bool = False
+VAL_OPTS: dict[str, str] = {"TEMP_FILE": "default_val",
+    "EXT": ".py",
+    "NAME": ""}
+
+BOOL_OPTS: dict[str, bool] = {"DEBUG": False}
 
 def prompt() -> int:
     pass
@@ -17,35 +18,35 @@ def handle_err(msg: str, code: int = 1):
     exit(code)
 
 def str2dirs(args: list[str]) -> list[str]:
-    global NAME
-    full_path: str = f"{os.getcwd()}/{NAME}"
+    global VAL_OPTS
+    full_path: str = f"{os.getcwd()}/{VAL_OPTS['NAME']}"
     cat_path = lambda x: f"{full_path}/{x}"
 
     if os.path.exists(full_path):
-        handle_err(f"error! directory `{NAME}` already exists")
+        handle_err(f"error! directory `{VAL_OPTS['NAME']}` already exists")
     # the casting of `set` is for the removal of duplicate paths
     # return list(set(map(cat_path, args)))
     return list({os.path.normpath(cat_path(x)) for x in args})
 
 def str2files(args: list[str]) -> list[str]:
-    global NAME
-    full_path: str = f"{os.getcwd()}/{NAME}"
-    cat_path = lambda x: f"{full_path}/{x}{EXT}" if \
+    global VAL_OPTS
+    full_path: str = f"{os.getcwd()}/{VAL_OPTS['NAME']}"
+    cat_path = lambda x: f"{full_path}/{x}{VAL_OPTS['EXT']}" if \
         x.split('/')[0] == "src" \
         else f"{full_path}/{x}"
 
     if os.path.exists(full_path):
-        handle_err(f"error! file {NAME} already exists")
+        handle_err(f"error! file {VAL_OPTS['NAME']} already exists")
     # the casting of `set` is for the removal of duplicate paths
     # return list(set(map(cat_path, args)))
     return list({os.path.normpath(cat_path(x)) for x in args})
 
 
 def build_dir_struct(dir_structure: list[str]) -> None:
-    global DEGUG
+    global BOOL_OPTS
 
     for dir_ in dir_structure:
-        if DEBUG:
+        if BOOL_OPTS['DEBUG']:
             print(f"[debug] mkdir {dir_}")
         
         try:
@@ -57,6 +58,12 @@ def build_dir_struct(dir_structure: list[str]) -> None:
         except:
             handle_err(f"error! unknown issue occured during creation of `{dir_}` directory", 2)
 
+def create_files(*files):
+    for file_ in files:
+        with open(file_, "w") as f:
+            print("file parsing not implemented", file=sys.stderr)
+            print("however files will still be created", file=sys.stderr)
+
 def parse_temp_file():
     pass
 
@@ -64,10 +71,7 @@ def parse_cli() -> tuple[list[str], list[str]]:
     index: int = 0
     dirs: list[str] = ["src/", "test/", "doc/"]
     files: list[str] = ["src/main"]
-    global NAME
-    global EXT
-    global TEMP_FILE
-    global DEBUG
+    global VAL_OPTS, BOOL_OPTS
     cli_cmds: list[str] = ["lib", "pro"]
     flags: dict[str, list[str]] = {
         sys.argv[0]: [
@@ -100,18 +104,18 @@ def parse_cli() -> tuple[list[str], list[str]]:
 
         if flag == "-t" and check(index):
             index += 1
-            TEMP_FILE = sys.argv[index]
+            VAL_OPTS['TEMP_FILE'] = sys.argv[index]
             continue
 
         elif flag == "-e" and check(index):
             index += 1
-            EXT = sys.argv[index]
+            VAL_OPTS['EXT'] = sys.argv[index]
             # NOTE: not a fan of this solution
-            if EXT[0] != '.': handle_err("error! file extentions require a `.` at the beggining")
+            if VAL_OPTS['EXT'][0] != '.': handle_err("error! file extentions require a `.` at the beggining")
             continue
 
         elif flag == "--debug":
-            DEBUG = True
+            BOOL_OPTS['DEBUG'] = True
             continue
 
         else:
@@ -132,7 +136,7 @@ def parse_cli() -> tuple[list[str], list[str]]:
         assert len(flags[cmd]) == 6, "exhaustive handling of pro flags"
         if check(index):
             index += 1
-            NAME = sys.argv[index]
+            VAL_OPTS['NAME'] = sys.argv[index]
         else:
             handle_err(f"error! command `{cmd}` was not given a name")
         
@@ -181,10 +185,10 @@ def parse_cli() -> tuple[list[str], list[str]]:
 def main() -> None:
     dirs, files = parse_cli()
     build_dir_struct(dirs)
-    print(files)
-    print(NAME)
-    print(EXT)
-    print(TEMP_FILE)
+    create_files(*files)
+    print(VAL_OPTS["NAME"])
+    print(VAL_OPTS["EXT"])
+    print(VAL_OPTS["TEMP_FILE"])
 
 if __name__ == "__main__":
     main()
