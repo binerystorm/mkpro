@@ -78,3 +78,42 @@ mkpro  pro {name} [-b|-r|-R |-n {na{name}me}]
      - end
       [function]
       stops file creation and esentialy ends program process
+
+# Template File Syntax
+  * template definition: --{name}--: \n
+    - litaraly everything is ignored before template definition
+    - new lines are not permitted in {name} spaces and tabs are however
+  * template terminator: [\n];;
+    - the new line is not nessesary
+
+  * text in template
+    - everything intemplate will be taken as is except for:
+      * %{{variable}} e.g %{functionName}
+        this will format user input into the template
+      * \%{ this will escape the formating incase you want that sequence of charecters in your template
+      * \;; this will escape the template terminator
+      * \\ this will escape the escape
+  * every thing outside of a template definetion will be ignored and could be considered a comment
+
+## Template File Example
+
+file >> 
+--mainFunc--:
+int main()
+{
+  return 0;
+}
+;;
+
+--func--:
+%returnType% %funcName%(%funcArgs%)
+{
+  return ...
+}
+;;
+
+--includes--:
+#include <%file%>
+;;
+
+<< EOF
