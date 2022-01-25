@@ -1,6 +1,6 @@
 import sys
 import os
-from typing import Union
+from typing import Union, TextIO
 
 # Global vars
 # TODO: put proper default value in TEMP_FILE
@@ -58,13 +58,14 @@ def build_dir_struct(dir_structure: list[str]) -> None:
         except:
             handle_err(f"error! unknown issue occured during creation of `{dir_}` directory", 2)
 
-def create_files(*files):
+def create_files(*files: str):
     for file_ in files:
         with open(file_, "w") as f:
             print("file parsing not implemented", file=sys.stderr)
             print("however files will still be created", file=sys.stderr)
 
-def parse_temp_file():
+
+def format_file(output_file: TextIO, template_file: str):
     pass
 
 def parse_cli() -> tuple[list[str], list[str]]:
