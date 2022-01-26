@@ -1,10 +1,11 @@
 import sys
 import os
-from typing import Union, TextIO
+from typing import Union, TextIO, Optional
+from parsing import parse_temp_file
 
 # Global vars
 # TODO: put proper default value in TEMP_FILE
-VAL_OPTS: dict[str, str] = {"TEMP_FILE": "default_val",
+VAL_OPTS: dict[str, str] = {"TEMP_FILE": "c.fmt",
     "EXT": ".py",
     "NAME": ""}
 
@@ -13,9 +14,12 @@ BOOL_OPTS: dict[str, bool] = {"DEBUG": False}
 def prompt() -> int:
     pass
 
-def handle_err(msg: str, code: int = 1):
+def handle_err(msg: str, code: int = 1) -> None:
     print(msg, file=sys.stderr)
     exit(code)
+
+def handle_prompt_typos(msg: str, opt: str, opt_list: list[str]) -> bool:
+    pass
 
 def str2dirs(args: list[str]) -> list[str]:
     global VAL_OPTS
@@ -58,15 +62,53 @@ def build_dir_struct(dir_structure: list[str]) -> None:
         except:
             handle_err(f"error! unknown issue occured during creation of `{dir_}` directory", 2)
 
-def create_files(*files: str):
+def norm_temp_path(file_name: str) -> str:
+    user: str = os.path.expanduser('~')
+    temp_dir: str = ".mkpro/templates"
+    full_path: str = os.path.join(user, temp_dir, file_name)
+    full_path = os.path.normpath(full_path)
+    if not os.path.exists(full_path):
+        handle_err("error! template file `{file_name}` does not exist in `{temp_dir}`")
+    return full_path
+        
+
+def create_files(*files: str) -> None:
+    global VAL_OPTS
+    temp_file: str = norm_temp_path(VAL_OPTS["TEMP_FILE"])
+    temp_map: Optional[dict[str, str]] = parse_temp_file(temp_file)
+    if not temp_map:
+        handle_err("error! failed to parse template file \nrun `mkpro check <file>` to try and find the error")
+        if input("would you like files to still be created? (y/[n])").lower() == 'n':
+            exit(1)
+
     for file_ in files:
+        opt: str = input(f"format file `{file_}`? (y/[n])")
         with open(file_, "w") as f:
-            print("file parsing not implemented", file=sys.stderr)
-            print("however files will still be created", file=sys.stderr)
+            if opt.lower() == 'n':
+                continue
+            elif opt.lower() in ('', 'y'):
+                assert temp_map
+                format_file(f, temp_map)
+
+# TODO: remove this function
+def parse_temp(temp: str) -> str:
+    return temp
 
 
-def format_file(output_file: TextIO, template_file: str):
-    pass
+def format_file(output_file: TextIO, temp_map: dict[str, str]) -> bool:
+    temp: str
+    parsed_temp: str
+    
+    print("type template name to add template")
+    print("to move on type `end`")
+    while (temp:=input("template name> ")) != 'end':
+        if temp in temp_map.keys():
+            parsed_temp = parse_temp(temp_map[temp])
+            output_file.write(parsed_temp)
+        else:
+            print("unknown template,\nmake sure spelling is correct and that the template is in the template file",
+                  file=sys.stderr)
+    return True
 
 def parse_cli() -> tuple[list[str], list[str]]:
     index: int = 0
@@ -184,12 +226,18 @@ def parse_cli() -> tuple[list[str], list[str]]:
 
 
 def main() -> None:
-    dirs, files = parse_cli()
-    build_dir_struct(dirs)
-    create_files(*files)
-    print(VAL_OPTS["NAME"])
-    print(VAL_OPTS["EXT"])
-    print(VAL_OPTS["TEMP_FILE"])
+    m = parse_temp_file(norm_temp_path(VAL_OPTS['TEMP_FILE']))
+    assert m
+    for k,v in m.items():
+        print(k, ":")
+        print(v)
+        print("")
+    # dirs, files = parse_cli()
+    # build_dir_struct(dirs)
+    # create_files(*files)
+    # print(VAL_OPTS["NAME"])
+    # print(VAL_OPTS["EXT"])
+    # print(VAL_OPTS["TEMP_FILE"])
 
 if __name__ == "__main__":
     main()
