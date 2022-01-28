@@ -153,11 +153,61 @@ def parse_temp_file(file_name: str) -> Optional[dict[str, str]]:
         idx += 1
     return return_table
 
+# Template Parser
+#################
+
+def parse_temp_name(temp, idx) -> tuple[Optional[str], int]:
+    buf: list[str] = []
+
+    while (idx:=idx+1) < len(temp):
+        if temp[idx] == '}':
+            return "".join(buf), idx
+        else:
+            buf.append(temp[idx])
+
+    return None, idx
+
+def parse_temp(temp: str) -> str:
+    temp_name: Optional[str]
+    replace_val: str
+    temp_name_map: dict[str, str] = {}
+    idx: int = -1
+    buf: list[str] = []
+
+    while (idx:=idx+1) < len(temp):
+        if temp[idx: idx+2] == '\\\\':
+            idx += 1
+            buf.append(temp[idx])
+            continue
+        elif temp[idx: idx+3] == '\\%{':
+            continue
+        elif temp[idx: idx+2] == '%{':
+            idx += 1
+            temp_name, idx = parse_temp_name(temp, idx)
+            if not temp_name:
+                print("parser error! template formater was not terminated", file=sys.stderr)
+                continue
+
+            if temp_name in temp_name_map.keys():
+                assert temp_name
+                replace_val = temp_name_map[temp_name]
+            else:
+                assert temp_name
+                replace_val = input(f"{temp_name}> ")
+                temp_name_map[temp_name] = replace_val
+            buf.append(replace_val)
+            continue
+        else:
+            buf.append(temp[idx])
+            continue
+
+    return "".join(buf)
+
                 
 if __name__ == "__main__":
-    data = parse_temp_file("foo.fmt")
-    assert data
-    for k,v in data.items():
-        print(k, ":")
-        print(v)
-        print("")
+    s: str = '''
+int %{func_name}(%{func_args})
+{
+    return 0;
+}'''
+    print(parse_temp(s))

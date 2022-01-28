@@ -1,7 +1,7 @@
 import sys
 import os
 from typing import Union, TextIO, Optional
-from parsing import parse_temp_file
+from parsing import parse_temp_file, parse_temp
 
 # Global vars
 # TODO: put proper default value in TEMP_FILE
@@ -82,7 +82,7 @@ def create_files(*files: str) -> None:
             exit(1)
 
     for file_ in files:
-        opt: str = input(f"format file `{file_}`? (y/[n])")
+        opt: str = input(f"format file `{os.path.basename(file_)}`? (y/[n])")
         with open(file_, "w") as f:
             if opt.lower() == 'n':
                 continue
@@ -91,9 +91,6 @@ def create_files(*files: str) -> None:
                 format_file(f, temp_map)
 
 # TODO: remove this function
-def parse_temp(temp: str) -> str:
-    return temp
-
 
 def format_file(output_file: TextIO, temp_map: dict[str, str]) -> bool:
     temp: str
@@ -130,7 +127,8 @@ def parse_cli() -> tuple[list[str], list[str]]:
             "-n",
             "-N"
         ],
-        "lib": []
+        "lib": [],
+        "check": []
     }
     cmd: str
     flag: str
@@ -169,12 +167,25 @@ def parse_cli() -> tuple[list[str], list[str]]:
 
     if not check(index): handle_err("error! no command given")
 
-    assert len(cli_cmds) == 2
+    assert len(cli_cmds) == 3
     index += 1
     cmd = sys.argv[index]
     if cmd == "lib":
         assert len(flags[cmd]) == 0, "exhaustive handling of lib flags"
         handle_err("error! lib command not implemented")
+    elif cmd == "check":
+        assert len(flags[cmd]) == 0
+        index += 1
+        if check(index):
+            temp_map: Optional[dict[str, str]] = parse_temp_file(sys.argv[index])
+            if temp_map:
+                print("no errors found in file")
+                exit(0)
+            else:
+                print("")
+                print("errors found in file")
+        else:
+            handle_err("error! check command requires one arguement")
     elif cmd == "pro":
         assert len(flags[cmd]) == 6, "exhaustive handling of pro flags"
         if check(index):
@@ -226,15 +237,15 @@ def parse_cli() -> tuple[list[str], list[str]]:
 
 
 def main() -> None:
-    m = parse_temp_file(norm_temp_path(VAL_OPTS['TEMP_FILE']))
-    assert m
-    for k,v in m.items():
-        print(k, ":")
-        print(v)
-        print("")
-    # dirs, files = parse_cli()
-    # build_dir_struct(dirs)
-    # create_files(*files)
+    # m = parse_temp_file(norm_temp_path(VAL_OPTS['TEMP_FILE']))
+    # assert m
+    # for k,v in m.items():
+    #     print(k, ":")
+    #     print(v)
+    #     print("")
+    dirs, files = parse_cli()
+    build_dir_struct(dirs)
+    create_files(*files)
     # print(VAL_OPTS["NAME"])
     # print(VAL_OPTS["EXT"])
     # print(VAL_OPTS["TEMP_FILE"])
