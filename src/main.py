@@ -112,7 +112,7 @@ def parse_cli() -> tuple[list[str], list[str]]:
     dirs: list[str] = ["src/", "test/", "doc/"]
     files: list[str] = ["src/main"]
     global VAL_OPTS, BOOL_OPTS
-    cli_cmds: list[str] = ["lib", "pro"]
+    cli_cmds: list[str] = ["lib", "pro", "check"]
     flags: dict[str, list[str]] = {
         sys.argv[0]: [
             "-t",
@@ -175,15 +175,15 @@ def parse_cli() -> tuple[list[str], list[str]]:
         handle_err("error! lib command not implemented")
     elif cmd == "check":
         assert len(flags[cmd]) == 0
-        index += 1
         if check(index):
-            temp_map: Optional[dict[str, str]] = parse_temp_file(sys.argv[index])
+            index += 1
+            temp_map: Optional[dict[str, str]] = parse_temp_file(os.path.join(os.getcwd(), sys.argv[index]))
             if temp_map:
                 print("no errors found in file")
                 exit(0)
             else:
                 print("")
-                print("errors found in file")
+                handle_err("errors found in file")
         else:
             handle_err("error! check command requires one arguement")
     elif cmd == "pro":
